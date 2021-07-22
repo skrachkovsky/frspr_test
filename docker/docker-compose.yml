@@ -1,0 +1,49 @@
+version: '3.9'
+
+networks:
+  default:
+
+services:
+  db:
+    image: postgres:13-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: x3u82yiCRYcAVEjjGoYLLRU5E0XK9Ini
+    networks:
+      - default
+  
+  core:
+    image: core:1.0
+    build:
+      context: '../'
+      dockerfile: 'docker/Dockerfile'
+      args:
+        debug: 1
+    networks:
+      - default
+    environment:
+      - APP_SETTINGS=phone_book.settings.debug
+    volumes:
+      - ../:/app:rw
+    tty: true
+  
+  api:
+    image: core:1.0
+    command: >
+      sh -c "poetry run alembic upgrade head &&
+             poetry run uvicorn phone_book:app --app-dir /app/src --host 0.0.0.0 --reload"
+    ports:
+      - '32565:8000'
+    depends_on:
+      - core
+      - db
+    environment:
+      - APP_SETTINGS=phone_book.settings.debug
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ../:/app:rw
+    networks:
+      - default
+  
