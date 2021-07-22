@@ -43,13 +43,19 @@ async def database_connection():
     return await db.create_engine()
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture
 async def conn(setup_database, database_connection):
     async with database_connection.acquire() as conn:
         yield conn
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(autouse=True)
+async def clear_db(conn):
+    yield
+    await conn.execute(f'TRUNCATE table "{phones.name}"')
+
+
+@pytest.fixture
 async def client():
     yield AsyncClient(app=app, base_url='http://test')
 
