@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from phone_book.exceptions import ItemDoesNotExists
 
 from .repositories import load_phone, load_phones
-from .services import AddPhoneNumber, ModifyPhoneNumber, PhoneContext
+from .services import AddPhoneNumber, ModifyPhoneNumber, PhoneContext, DeletePhoneNumber
 from .aggregates import Phone
 from . import phones_app as app
 
@@ -34,6 +34,6 @@ async def edit_phone_number(pk: int, item: Phone):
 @app.delete('/{pk}/')
 async def delete_phone_number(pk: int):
     try:
-        await ModifyPhoneNumber().modify(PhoneContext(phone=await load_phone(pk)))
+        await DeletePhoneNumber().delete(PhoneContext(phone=await load_phone(pk)))
     except ItemDoesNotExists:
         raise HTTPException(status_code=404, detail="Item not found")
